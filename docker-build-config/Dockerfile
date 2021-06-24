@@ -1,0 +1,68 @@
+FROM php:7.4-apache
+MAINTAINER Jacob A. Bruinsma
+WORKDIR /var/www/html
+COPY . .
+RUN chmod -R 777 .
+RUN chown -R www-data:www-data .
+RUN a2enmod rewrite
+RUN a2enmod headers
+# Install PHP extensions
+RUN set -ex; \
+	\
+	savedAptMark="$(apt-mark showmanual)"; \
+	\
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		libbz2-dev \
+		libgmp-dev \
+		libjpeg-dev \
+		libldap2-dev \
+		libmcrypt-dev \
+		libmemcached-dev \
+		libpng-dev \
+		libpq-dev \
+		libzip-dev \
+	; \
+	\
+	# docker-php-ext-configure gd --with-jpeg-dir=/usr --with-png-dir=/usr; \
+	debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)"; \
+	docker-php-ext-configure ldap --with-libdir="lib/$debMultiarch"; \
+	docker-php-ext-install -j "$(nproc)" \
+		bz2 \
+		gd \
+		gmp \
+		ldap \
+		mysqli \
+		pdo_mysql \
+		pdo_pgsql \
+		pgsql \
+		zip \
+	; \
+	\
+	# pecl will claim success even if one install fails, so we need to perform each install separately
+	pecl install APCu-5.1.20; \
+	pecl install memcached-3.1.5; \
+	pecl install redis-5.3.4; \
+	\
+	docker-php-ext-enable \
+		apcu \
+		memcached \
+		redis \
+	; \
+	rm -r /tmp/pear; \
+	\
+	# reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
+	apt-mark auto '.*' > /dev/null; \
+	apt-mark manual $savedAptMark; \
+	ldd "$(php -r 'echo ini_get("extension_dir");')"/*.so \
+		| awk '/=>/ { print $3 }' \
+		| sort -u \
+		| xargs -r dpkg-query -S \
+		| cut -d: -f1 \
+		| sort -u \
+		| xargs -rt apt-mark manual; \
+	\
+	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+	rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["./makedbs.sh"]
+CMD ["apache2-foreground"]

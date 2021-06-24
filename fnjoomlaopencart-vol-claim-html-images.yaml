@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-images-claim
+spec:
+  storageClassName: manual
+  # mount to this particular volume name (metadata.name)
+  volumeName: vol-html-images
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fnjoomlaopencart-configmap
+data:
+  MYSQL_HOST: db
+  DB_NAME_JOOMLA: joomla
+  DB_NAME_OPENCART: opencart
+  DB_NAME_FISHNET: fishnet

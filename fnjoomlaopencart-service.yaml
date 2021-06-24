@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: fnjoomlaopencart
+  name: fnjoomlaopencart
+spec:
+  type: LoadBalancer
+  externalIPs:
+    - 192.168.1.169
+    - 192.168.1.163
+    - 192.168.1.141
+  ports:
+    - name: "80"
+      port: 80
+      targetPort: 80
+      nodePort: 30003
+  selector:
+    io.kompose.service: fnjoomlaopencart

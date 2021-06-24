@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: fnjoomlaopencart
+  name: fnjoomlaopencart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: fnjoomlaopencart
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
+        kompose.version: 1.22.0 (955b78124)
+      labels:
+        io.kompose.service: fnjoomlaopencart
+    spec:
+      # Modify the hosts file in the pod, to pull from private registry
+      # apparently, insecure registries are fine.
+      hostAliases:
+        - ip: "192.168.1.196"
+          hostnames:
+            - "docker-registry-k8s.local.com"
+      containers:
+        - image: docker-registry-k8s.local.com:30002/jacobbruinsma/fnjoomlaopencart:1.0
+          name: fnjoomlaopencart
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: fnjoomlaopencart-configmap
+                  key: MYSQL_HOST
+            - name: DB_NAME_JOOMLA
+              valueFrom:
+                configMapKeyRef:
+                  name: fnjoomlaopencart-configmap
+                  key: DB_NAME_JOOMLA
+            - name: DB_NAME_OPENCART
+              valueFrom:
+                configMapKeyRef:
+                  name: fnjoomlaopencart-configmap
+                  key: DB_NAME_OPENCART
+            - name: DB_NAME_FISHNET
+              valueFrom:
+                configMapKeyRef:
+                  name: fnjoomlaopencart-configmap
+                  key: DB_NAME_FISHNET
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fnjoomlaopencart-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fnjoomlaopencart-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fnjoomlaopencart-secret
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - mountPath: /var/joomla-opencart-mysql-config
+              name: vol-claim-mysql-config
+              # This volume claim claims a share also
+              # used by other claims. So dedicate
+              # a sub path inside that share.
+              subPath: vol-mysql-config
+            - mountPath: /var/www/html/images
+              name: vol-claim-html-images
+              # This volume claim claims a share also
+              # used by other claims. So dedicate
+              # a sub path inside that share.
+              subPath: vol-html-images
+      restartPolicy: Always
+      volumes:
+        - name: vol-claim-mysql-config
+          persistentVolumeClaim:
+            claimName: nfs-mysqlconfig-claim
+        - name: vol-claim-html-images
+          persistentVolumeClaim:
+            claimName: nfs-images-claim
