@@ -1,27 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
-    kompose.version: 1.22.0 (955b78124)
-  creationTimestamp: null
   labels:
-    io.kompose.service: fnjoomlaopencart
+    app: fnjoomlaopencart
   name: fnjoomlaopencart
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: fnjoomlaopencart
+      app: fnjoomlaopencart
   strategy:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
-        kompose.version: 1.22.0 (955b78124)
       labels:
-        io.kompose.service: fnjoomlaopencart
+        app: fnjoomlaopencart
     spec:
       # Modify the hosts file in the pod, to pull from private registry
       # apparently, insecure registries are fine.

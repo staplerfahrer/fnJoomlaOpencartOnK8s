@@ -1,12 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
-    kompose.version: 1.22.0 (955b78124)
-  creationTimestamp: null
   labels:
-    io.kompose.service: fnjoomlaopencart-db-service
+    app: fnjoomlaopencart-db-service
   name: fnjoomlaopencart-db-service
 spec:
   ports:
@@ -14,4 +10,4 @@ spec:
       port: 3306
       targetPort: 3306
   selector:
-    io.kompose.service: fnjoomlaopencart-db-service
+    app: fnjoomlaopencart-db

@@ -1,28 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
-    kompose.version: 1.22.0 (955b78124)
-  creationTimestamp: null
   labels:
-    io.kompose.service: db
-  name: db
+    app: fnjoomlaopencart-db
+  name: fnjoomlaopencart-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: db
+      app: fnjoomlaopencart-db
   strategy:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f joomla-opencart-mysql.yaml
-        kompose.version: 1.22.0 (955b78124)
-      creationTimestamp: null
       labels:
-        io.kompose.service: db
+        app: fnjoomlaopencart-db
     spec:
       securityContext:
         # because MySQL wants to CHOWN the directory, change the security context:
@@ -33,7 +25,9 @@ spec:
         fsGroup: 1000
       containers:
         - image: mysql
-          name: db
+          name: fnjoomlaopencart-db
+          ports:
+            - containerPort: 3306
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:

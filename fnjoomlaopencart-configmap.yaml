@@ -3,7 +3,8 @@ kind: ConfigMap
 metadata:
   name: fnjoomlaopencart-configmap
 data:
-  MYSQL_HOST: db
+  # point to the DB service
+  MYSQL_HOST: fnjoomlaopencart-db-service
   DB_NAME_JOOMLA: joomla
   DB_NAME_OPENCART: opencart
   DB_NAME_FISHNET: fishnet
